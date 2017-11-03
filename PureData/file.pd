@@ -1,0 +1,15 @@
+#N canvas 944 345 792 579 10;
+#X declare -lib mrpeach;
+#X obj 114 34 import mrpeach;
+#X obj 112 106 udpreceive 6161;
+#X obj 112 189 routeOSC /test;
+#X obj 112 291 unpack i;
+#X obj 112 345 print;
+#X obj 112 146 unpackOSC;
+#X text 240 105 Init OSC protocol;
+#X text 240 187 Look into the message "test";
+#X text 241 290 Fetch back an Integer;
+#X connect 1 0 5 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 5 0 2 0;
