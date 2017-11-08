@@ -51,7 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Code\OSCProtocol\OscMessage.cs" />
+     <Compile Include="Assets\Code\OSCProtocol\OSCMessage.cs" />
      <Compile Include="Assets\Code\OSCProtocol\OSCProtocol.cs" />
      <Compile Include="Assets\Code\OSCProtocol\UDPPacket.cs" />
      <Compile Include="Assets\Code\PDData.cs" />

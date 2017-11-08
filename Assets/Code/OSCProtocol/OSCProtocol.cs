@@ -17,8 +17,8 @@ using UnityEngine;
 /// their use.
 /// 
 /// When instanciated, the Osc class opens the PacketIO instance that's handed to it and 
-/// begins to run a reader thread.  The instance is then ready to service Send OscMessage requests 
-/// and to start supplying OscMessages as received back.
+/// begins to run a reader thread.  The instance is then ready to service Send OSCMessage requests 
+/// and to start supplying OSCMessages as received back.
 /// 
 /// The Osc class can be called to Send either individual messages or collections of messages
 /// in an Osc Bundle.  Receiving is done by delegate.  There are two ways: either submit a method
@@ -40,7 +40,7 @@ public class OSCProtocol : MonoBehaviour
     private UDPPacket         m_oscPacket;
     private Thread            m_readThread;
     private bool              m_readerRunning;
-    private OscMessageHandler m_allMessageHandler;
+    private OSCMessageHandler m_allMessageHandler;
     private Hashtable         m_addressTable      = new Hashtable();
 
     private ArrayList m_messageReceived = new ArrayList();
@@ -73,11 +73,11 @@ public class OSCProtocol : MonoBehaviour
 
     /// <summary>
     /// Set the method to call back on when a message with the specified address is received.
-    /// The method needs to have the OscMessageHandler signature - i.e. void amh(OscMessage oscM)
+    /// The method needs to have the OSCMessageHandler signature - i.e. void amh(OSCMessage oscM)
     /// </summary>
 	/// <param name="key"> Address string to be matched </param>   
 	/// <param name="handler"> The method to call back on </param>   
-    public void SetAddressHandler(string key, OscMessageHandler handler)
+    public void SetAddressHandler(string key, OSCMessageHandler handler)
     {
         ArrayList al = (ArrayList)Hashtable.Synchronized(m_addressTable)[key];
 
@@ -105,14 +105,14 @@ public class OSCProtocol : MonoBehaviour
             lock(m_readThreadLock)
             {
                 //For all message received, called the MessageHandlers for this specific address
-                foreach(OscMessage om in m_messageReceived)
+                foreach(OSCMessage om in m_messageReceived)
                 {
                     if(m_allMessageHandler != null)
                         m_allMessageHandler(om);
 					ArrayList al = (ArrayList)Hashtable.Synchronized(m_addressTable)[om.Address];
 
                     if(al != null)
-                        foreach(OscMessageHandler h in al)
+                        foreach(OSCMessageHandler h in al)
                             h(om);
                 }
                 m_messageReceived.Clear();
@@ -139,7 +139,7 @@ public class OSCProtocol : MonoBehaviour
 	void Start() 
 	{
 		string s = "/test 10";
-		Send(StringToOscMessage(s));
+		Send(StringToOSCMessage(s));
 	}
 
     /// <summary>
@@ -159,7 +159,7 @@ public class OSCProtocol : MonoBehaviour
                     {
                         if(m_paused == false)
                         {
-							ArrayList newMessages = OSCProtocol.PacketToOscMessages(buffer, buffer.Length);
+							ArrayList newMessages = OSCProtocol.PacketToOSCMessages(buffer, buffer.Length);
 							m_messageReceived.AddRange(newMessages);
                         }
                     }
@@ -174,40 +174,40 @@ public class OSCProtocol : MonoBehaviour
         }
     }
 
-    /// <summary> Send an individual OSC message. Internally takes the OscMessage object and serializes it into a byte[] suitable for sending to the PacketIO </summary>
+    /// <summary> Send an individual OSC message. Internally takes the OSCMessage object and serializes it into a byte[] suitable for sending to the PacketIO </summary>
     /// <param name="message"> The OSC Message to send </param>
-    public void Send(OscMessage message)
+    public void Send(OSCMessage message)
     {
         byte[] packet = new byte[BUFFER_LENGTH];
-        int length    = OSCProtocol.OscMessageToPacket(message, packet, BUFFER_LENGTH);
+        int length    = OSCProtocol.OSCMessageToPacket(message, packet, BUFFER_LENGTH);
         m_oscPacket.SendPacket(packet, length);
     }
 
-    /// <summary> Sends a list of OSC Messages. Internally takes the OscMessage objects and serializes them into a byte[] suitable for sending to the PacketExchange </summary>
+    /// <summary> Sends a list of OSC Messages. Internally takes the OSCMessage objects and serializes them into a byte[] suitable for sending to the PacketExchange </summary>
     /// <param name="oms"> The OSC Message to send </param>
     public void Send(ArrayList oms)
     {
 		byte[] packet = new byte[BUFFER_LENGTH];
-		int length = OscMessagesToPacket(oms, packet, BUFFER_LENGTH);
+		int length = OSCMessagesToPacket(oms, packet, BUFFER_LENGTH);
 		m_oscPacket.SendPacket(packet, length);
 	}
 		
 	/// <summary>
 	/// Set the method to call back on when any message is received.
-	/// The method needs to have the OscMessageHandler signature - i.e. void amh( OscMessage oscM )
+	/// The method needs to have the OSCMessageHandler signature - i.e. void amh( OSCMessage oscM )
 	/// </summary>
 	/// <param name="handler">The method to call back on.</param> 
-	public void SetAllMessageHandler(OscMessageHandler handler)
+	public void SetAllMessageHandler(OSCMessageHandler handler)
     {
         m_allMessageHandler = handler;
     }
 
-    /// <summary> Creates an OscMessage from a string - extracts the address and determines each of the values </summary>
-    /// <param name="message"> The string to be turned into an OscMessage </param>
-    /// <returns> The OscMessage </returns>
-    public static OscMessage StringToOscMessage(string message)
+    /// <summary> Creates an OSCMessage from a string - extracts the address and determines each of the values </summary>
+    /// <param name="message"> The string to be turned into an OSCMessage </param>
+    /// <returns> The OSCMessage </returns>
+    public static OSCMessage StringToOSCMessage(string message)
     {
-        OscMessage om  = new OscMessage();
+        OSCMessage om  = new OSCMessage();
         string[] ss    = message.Split(new char[]{' '});
         IEnumerator sE = ss.GetEnumerator();
 
@@ -288,16 +288,16 @@ public class OSCProtocol : MonoBehaviour
         return om;
     }
 
-    /// <summary> Puts an array of OscMessages into a packet (byte[]) </summary>
-    /// <param name="messages"> An ArrayList of OscMessages </param>
-    /// <param name="packet">   An array of bytes to be populated with the OscMessages </param>
+    /// <summary> Puts an array of OSCMessages into a packet (byte[]) </summary>
+    /// <param name="messages"> An ArrayList of OSCMessages </param>
+    /// <param name="packet">   An array of bytes to be populated with the OSCMessages </param>
     /// <param name="length">   The length available in the array "packet" </param>
     /// <returns>               The length of the packet </returns>
-    public static int OscMessagesToPacket(ArrayList messages, byte[] packet, int length)
+    public static int OSCMessagesToPacket(ArrayList messages, byte[] packet, int length)
     {
         int index = 0;
         if(messages.Count == 1)
-            index = OscMessageToPacket((OscMessage)messages[0], packet, 0, length);
+            index = OSCMessageToPacket((OSCMessage)messages[0], packet, 0, length);
         else
         {
             //Write the first bundle bit
@@ -309,15 +309,15 @@ public class OSCProtocol : MonoBehaviour
                 packet[index++]++;
 
             //Now put each message preceded by its length
-            foreach(OscMessage msg in messages)
+            foreach(OSCMessage msg in messages)
             {
                 //Save the index
                 int lengthIndex = index;
                 index += 4;
                 int packetStart = index;
 
-                //Save the content of this OscMessage
-                index = OscMessageToPacket(msg, packet, index, length);
+                //Save the content of this OSCMessage
+                index = OSCMessageToPacket(msg, packet, index, length);
 
                 //put the size (4 bytes)
                 int packetSize = index - packetStart;
@@ -330,24 +330,24 @@ public class OSCProtocol : MonoBehaviour
 		return index;
     }
 
-    /// <summary> Creates a packet (an array of bytes) from a single OscMessage </summary>
-    /// <param name="message"> The OscMessage to be returned as a packet </param>
-    /// <param name="packet">The packet to be populated with the OscMessage.</param>
+    /// <summary> Creates a packet (an array of bytes) from a single OSCMessage </summary>
+    /// <param name="message"> The OSCMessage to be returned as a packet </param>
+    /// <param name="packet">The packet to be populated with the OSCMessage.</param>
     /// <param name="length">The usable size of the array of bytes.</param>
     /// <returns>The length of the packet</returns>
-    public static int OscMessageToPacket(OscMessage message, byte[] packet, int length)
+    public static int OSCMessageToPacket(OSCMessage message, byte[] packet, int length)
     {
-        return OscMessageToPacket(message, packet, 0, length);
+        return OSCMessageToPacket(message, packet, 0, length);
     }
 
-    /// <summary> Creates a packet (an array of bytes) from a single OscMessage </summary>
-    /// <remarks>Can specify where in the array of bytes the OscMessage should be put.</remarks>
-    /// <param name="message"> The OscMessage to be returned as a packet </param>
-    /// <param name="packet">The packet to be populated with the OscMessage.</param>
-    /// <param name="start">The start index in the packet where the OscMessage should be put.</param>
+    /// <summary> Creates a packet (an array of bytes) from a single OSCMessage </summary>
+    /// <remarks>Can specify where in the array of bytes the OSCMessage should be put.</remarks>
+    /// <param name="message"> The OSCMessage to be returned as a packet </param>
+    /// <param name="packet">The packet to be populated with the OSCMessage.</param>
+    /// <param name="start">The start index in the packet where the OSCMessage should be put.</param>
     /// <param name="length">The usable size of the array of bytes.</param>
     /// <returns>The length of the packet</returns>
-    public static int OscMessageToPacket(OscMessage message, byte[] packet, int start, int length)
+    public static int OSCMessageToPacket(OSCMessage message, byte[] packet, int start, int length)
     {
         int index = start;
 
@@ -407,11 +407,11 @@ public class OSCProtocol : MonoBehaviour
         return index;
     }
 
-    /// <summary> Takes a packet (byte[]) and turns it into a list of OscMessages </summary>
+    /// <summary> Takes a packet (byte[]) and turns it into a list of OSCMessages </summary>
     /// <param name="packet"> The packet to be parsed </param>
     /// <param name="length"> The length of the packet </param>
-    /// <returns> An ArrayList of OscMessages </returns>
-    public static ArrayList PacketToOscMessages(byte[] packet, int length)
+    /// <returns> An ArrayList of OSCMessages </returns>
+    public static ArrayList PacketToOSCMessages(byte[] packet, int length)
     {
         ArrayList messages = new ArrayList();
         ExtractMessages(messages, packet, 0, length);
@@ -419,14 +419,14 @@ public class OSCProtocol : MonoBehaviour
     }
 
     /// <summary>  Extracts a messages from a packet </summary>
-    /// <param name="messages">An ArrayList to be populated with the OscMessage.</param>
+    /// <param name="messages">An ArrayList to be populated with the OSCMessage.</param>
     /// <param name="packet">The packet of bytes to be parsed.</param>
     /// <param name="start">The index of where to start looking in the packet.</param>
     /// <param name="length">The length of the packet.</param>
-    /// <returns>The index after the OscMessage is read.</returns>
+    /// <returns>The index after the OSCMessage is read.</returns>
     public static int ExtractMessages(ArrayList messages, byte[] packet, int start, int length)
     {
-        OscMessage oscM = new OscMessage();
+        OSCMessage oscM = new OSCMessage();
 
         //Get the address
         oscM.Address = ExtractString(packet, start, length);

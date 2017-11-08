@@ -8,13 +8,13 @@ using System.Text;
 using UnityEngine;
 
 /// <summary> The OscMessage class is a data structure that represents an OSC address and an arbitrary number of values to be sent to that address </summary>
-public class OscMessage
+public class OSCMessage
 {
 	private string    m_address;
 	private ArrayList m_values;
 
 	/// <summary> Default constructor. Init the object </summary>
-	public OscMessage()
+	public OSCMessage()
 	{
 		m_values = new ArrayList();
 	}
@@ -95,4 +95,4 @@ public class OscMessage
 	}
 }
 
-public delegate void OscMessageHandler(OscMessage oscM);
+public delegate void OSCMessageHandler(OSCMessage oscM);
