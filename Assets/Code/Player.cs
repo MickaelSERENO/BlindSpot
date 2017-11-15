@@ -8,12 +8,24 @@ public class Player : MonoBehaviour
 	public static float ROT_SPEED = 1.0f;
 
 	/// <summary> An array of PDData. Will contain one value per sound source </summary>
-	private List<PDData> m_datas;
+	private List<PDData> m_datas = new List<PDData>();
 
 	/// <summary> Use this for initialization </summary> 
 	void Start() 
 	{
-		m_datas = new List<PDData>();
+		//Send the number of spots
+		OSCMessage msg = new OSCMessage();
+		msg.Address    = "/NbSpots";
+		int nb = 0;
+		foreach(var o in GameObject.FindGameObjectsWithTag("BlindSpot"))
+		{
+			nb++;
+		}
+		msg.Values.Add(nb);
+
+		GameObject scene = GameObject.FindGameObjectWithTag("Scene");
+		OSCProtocol osc  = scene.GetComponent<OSCProtocol>();
+		osc.Send(msg);
 	}
 
 	void OnCollisionEnter(Collision coll)
@@ -46,21 +58,22 @@ public class Player : MonoBehaviour
 			horizontal += 1;
 
 		//Then move the sphere
-		Vector3 moveBy = new Vector3(horizontal, 0, vertical);
+		Vector3 moveBy = transform.rotation * new Vector3(horizontal, 0, vertical);
+		moveBy.y = 0;
 		moveBy.Normalize();
 		moveBy *= SPEED;
 		gameObject.transform.position += moveBy;
 
 		//Rotate the object
 		if (Input.GetKey(KeyCode.T)) //Top
-			transform.Rotate(-ROT_SPEED, 0, 0, 0);	
+			transform.localRotation = transform.localRotation * Quaternion.Euler(-ROT_SPEED, 0, 0);	
 		if (Input.GetKey(KeyCode.B)) //Bot
-			transform.Rotate(+ROT_SPEED, 0, 0, 0);	
+			transform.localRotation = transform.localRotation * Quaternion.Euler(+ROT_SPEED, 0, 0);	
 
 		if (Input.GetKey(KeyCode.L)) //Left
-			transform.Rotate(0, -ROT_SPEED, 0, 0);	
+			transform.localEulerAngles = transform.localEulerAngles + new Vector3(0, -ROT_SPEED, 0);	
 		if (Input.GetKey(KeyCode.R)) //Right
-			transform.Rotate(0, +ROT_SPEED, 0, 0);	
+			transform.localEulerAngles = transform.localEulerAngles + new Vector3(0, +ROT_SPEED, 0);
 	}
 
 	/// <summary> Update azimuths and altitudes </summary> 
@@ -74,12 +87,15 @@ public class Player : MonoBehaviour
 		{
 			SoundSource ss = obj.gameObject.GetComponent<SoundSource>();
 			Debug.Log("Sound Ss");
-			//Compute and push azimuth + altitude for every non-lighten sound source
+
+			//Compute and push azimuth + altitude for every sound source
+			PDData data = ComputeAngle(obj);
 			if(!ss.Lighted)
-			{
-				PDData data = ComputeAngle(obj);
-				m_datas.Add(data);
-			}
+				data.Volume = 47;
+			else
+				data.Volume = 0;
+			m_datas.Add(data);
+
 		}
 	}
 
@@ -102,14 +118,8 @@ public class Player : MonoBehaviour
 	/// <summary> Send data to PureData </summary> 
 	private void SendOSC()
 	{
-		//Send the number of spots
-		OSCMessage msg = new OSCMessage();
-		msg.Address    = "/NbSpots";
-		msg.Values.Add(m_datas.Count);
-
 		GameObject scene = GameObject.FindGameObjectWithTag("Scene");
 		OSCProtocol osc  = scene.GetComponent<OSCProtocol>();
-		osc.Send(msg);
 	
 		//For each spot, send the datas
 		int i=1;
@@ -118,6 +128,7 @@ public class Player : MonoBehaviour
 			OSCMessage pdMsg = new OSCMessage();
 			pdMsg.Address = "/Position";
 			pdMsg.Values.Add(i++);
+			pdMsg.Values.Add(data.Volume);
 			pdMsg.Values.Add(data.Amplitude);
 			pdMsg.Values.Add(data.Azimuth);			
 			pdMsg.Values.Add(data.Altitude);
