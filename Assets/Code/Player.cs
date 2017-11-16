@@ -141,7 +141,7 @@ public class Player : MonoBehaviour
             //Compute and push azimuth + altitude for every sound source
             PDData data = ComputeAngle(obj);
             if (!ss.Lighted)
-                data.Volume = 47;
+                data.Volume = 100;
             else
                 data.Volume = 0;
             m_datas.Add(data);
