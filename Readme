@@ -1,0 +1,5 @@
+Install Unity3D
+Install PureData extended
+
+Launch the file PureData/file.pd with puredata. Pay attention that its active directory should be the directory PureData because of the sounds
+Launch Unity with this directory. Open "Assets/Scenes/Scene1.unity" and launch the game
